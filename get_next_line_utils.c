@@ -6,7 +6,7 @@
 /*   By: alopez-v <alopez-v@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 18:54:06 by alopez-v          #+#    #+#             */
-/*   Updated: 2025/01/24 19:58:36 by alopez-v         ###   ########.fr       */
+/*   Updated: 2025/01/24 20:34:07 by alopez-v         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ ssize_t	ft_arrlst_popfront(t_arrlst *arrlst, void **buffer, const size_t n)
 		((unsigned char *)arrlst->arr)[i] = '\0';
 		++i;
 	}
+	((unsigned char *)buffer)[buf_len] = '\0';
 	return (buf_len);
 }
 
@@ -44,7 +45,7 @@ int	ft_arrlst_pushback(t_arrlst *arrlst, const void *buf, const size_t n)
 	size_t	i;
 	
 	while (n > arrlst->size - arrlst->len)
-		if (ft_arrlst_resize(arrlst, arrlst->size + arrlst->increment))
+		if (!ft_arrlst_resize(arrlst, arrlst->size + arrlst->increment))
 			return (0);
 	i = 0;
 	while (i < n)
@@ -75,8 +76,10 @@ int	ft_arrlst_resize(t_arrlst *arrlst, const size_t n)
 		((unsigned char *)new_buf)[i] ='\0';
 		++i;
 	}
-	free(arrlst->arr);
+	if (arrlst->arr)
+		free(arrlst->arr);
 	arrlst->arr = new_buf;
+	arrlst->size = n;
 	return (1);
 }
 

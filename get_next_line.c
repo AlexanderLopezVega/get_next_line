@@ -6,7 +6,7 @@
 /*   By: alopez-v <alopez-v@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 18:34:08 by alopez-v          #+#    #+#             */
-/*   Updated: 2025/01/24 19:59:00 by alopez-v         ###   ########.fr       */
+/*   Updated: 2025/01/24 20:34:50 by alopez-v         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,15 @@ char	*get_next_line(int fd)
 	char 			*read_buf;
 	ssize_t 		bytes_read;
 
+	if (!pers_buf)
+	{
+		pers_buf = malloc(sizeof(t_arrlst));
+		if (!pers_buf)
+			return (NULL);
+		pers_buf->increment = SIZE_INCR;
+		pers_buf->len = 0;
+		pers_buf->size = 0;
+	}
 	read_buf = malloc(sizeof(char) * BUFFER_SIZE);
 	if (read_buf)
 	{
