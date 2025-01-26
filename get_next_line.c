@@ -6,7 +6,7 @@
 /*   By: alopez-v <alopez-v@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/24 11:49:11 by vboxuser          #+#    #+#             */
-/*   Updated: 2025/01/26 10:40:42 by alopez-v         ###   ########.fr       */
+/*   Updated: 2025/01/26 12:48:54 by alopez-v         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,22 +19,21 @@ char	*get_next_line(int fd)
 	static char		*buffer;
 	static size_t	size;
 	static size_t	len;
+	char			*line;
 	ssize_t			bytes_read;
 
-	bytes_read = 1;
-	while ((!buffer || ft_strchr(buffer, '\n', len) == len) && bytes_read > 0)
+	if (!buffer)
+		bytes_read = ft_fetch(&buffer, &size, &len, fd);
+	while (bytes_read > 0 && !ft_find_line(&buffer, &len, &line))
 	{
-		if (!buffer || size - len < BUFFER_SIZE)
-			ft_resize(&buffer, &size);
-		bytes_read = read(fd, buffer + len, BUFFER_SIZE);
-		if (bytes_read != -1)
-			len += bytes_read;
+		bytes_read = ft_fetch(&buffer, &size, &len, fd);
+		if (bytes_read == -1)
+		{
+			ft_free(&buffer, &size, &len);
+			return (NULL);
+		}
 	}
-	if (bytes_read >= 0 && len > 0)
-		return (ft_take_line(&buffer, &size, &len));
-	free(buffer);
-	buffer = NULL;
-	size = 0;
-	len = 0;
-	return (NULL);
+	if (bytes_read == 0)
+		return (ft_take_buffer(&buffer, &size, &len));
+	return (line);
 }
