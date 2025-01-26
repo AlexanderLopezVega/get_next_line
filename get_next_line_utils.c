@@ -5,115 +5,93 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: alopez-v <alopez-v@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/24 18:54:06 by alopez-v          #+#    #+#             */
-/*   Updated: 2025/01/24 20:34:07 by alopez-v         ###   ########.fr       */
+/*   Created: 2025/01/24 23:22:16 by vboxuser          #+#    #+#             */
+/*   Updated: 2025/01/26 10:53:57 by alopez-v         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+#include <unistd.h>
 #include <stdlib.h>
 
-ssize_t	ft_arrlst_popfront(t_arrlst *arrlst, void **buffer, const size_t n)
+static void	ft_move_front(char *buffer, const size_t len, const size_t offset)
 {
-	size_t	buf_len;
 	size_t	i;
 
-	buf_len = n;
-	if (buf_len > arrlst->len)
-		buf_len = arrlst->len;
-	*buffer = malloc(sizeof(char) * n);
+	i = 0;
+	while (offset + i < len)
+	{
+		buffer[i] = buffer[offset + i];
+		++i;
+	}
+}
+
+char	*ft_resize(char **buffer, size_t *size)
+{
+	char	*new_buffer;
+	size_t	i;
+
+	new_buffer = malloc(sizeof(char) * (*size + BUFFER_SIZE));
+	if (!new_buffer)
+	{
+		if (*buffer)
+			free(buffer);
+		buffer = NULL;
+		*size = 0;
+		return (NULL);
+	}
+	i = 0;
+	while (i < *size)
+	{
+		new_buffer[i] = (*buffer)[i];
+		++i;
+	}
 	if (!*buffer)
-		return (-1);
-	i = 0;
-	while (i < buf_len)
-	{
-		((unsigned char *)buffer)[i] = ((unsigned char *)arrlst->arr)[i];
-		++i;
-	}
-	while (i < arrlst->len)
-	{
-		((unsigned char *)arrlst->arr)[i - buf_len] = ((unsigned char *)arrlst->arr)[i];
-		((unsigned char *)arrlst->arr)[i] = '\0';
-		++i;
-	}
-	((unsigned char *)buffer)[buf_len] = '\0';
-	return (buf_len);
+		free(*buffer);
+	*buffer = new_buffer;
+	*size += BUFFER_SIZE;
+	return (new_buffer);
 }
 
-int	ft_arrlst_pushback(t_arrlst *arrlst, const void *buf, const size_t n)
+size_t	ft_strchr(const char *buf, const char c, const size_t size)
 {
 	size_t	i;
-	
-	while (n > arrlst->size - arrlst->len)
-		if (!ft_arrlst_resize(arrlst, arrlst->size + arrlst->increment))
-			return (0);
+
 	i = 0;
-	while (i < n)
+	while (i < size)
 	{
-		((unsigned char *)arrlst->arr)[arrlst->len + i] = ((unsigned char *)buf)[i];
+		if (buf[i] == c)
+			return (i);
 		++i;
 	}
-	arrlst->len += n;
-	return (1);
+	return (i);
 }
 
-int	ft_arrlst_resize(t_arrlst *arrlst, const size_t n)
+char	*ft_take_line(char **buffer, size_t *size, size_t *len)
 {
+	size_t	line_len;
 	size_t	i;
-	void	*new_buf;
+	char	*line;
 
-	new_buf = malloc(sizeof(char) * n);
-	if (!new_buf)
-		return (0);
+	line_len = ft_strchr(*buffer, '\n', *len);
+	if (line_len < *len && (*buffer)[line_len] == '\n')
+		++line_len;
+	line = malloc(sizeof(char) * (line_len + 1));
+	if (!line)
+	{
+		free(*buffer);
+		*buffer = 0;
+		*size = 0;
+		*len = 0;
+	}
 	i = 0;
-	while (i < arrlst->len && i < n)
+	while (i < line_len)
 	{
-		((unsigned char *)new_buf)[i] = ((unsigned char *)arrlst->arr)[i];
+		line[i] = (*buffer)[i];
 		++i;
 	}
-	while (i < n)
-	{
-		((unsigned char *)new_buf)[i] ='\0';
-		++i;
-	}
-	if (arrlst->arr)
-		free(arrlst->arr);
-	arrlst->arr = new_buf;
-	arrlst->size = n;
-	return (1);
-}
-
-void	ft_free_resources(t_arrlst **arrlst, char **read_buf)
-{
-	if (*arrlst)
-	{
-		if ((*arrlst)->arr)
-		{
-			free((*arrlst)->arr);
-			(*arrlst)->arr = NULL;
-		}
-		free(*arrlst);
-		*arrlst = NULL;
-	}
-	if (*read_buf)
-	{
-		free(*read_buf);
-		*read_buf = NULL;
-	}
-}
-
-char	*ft_strchr(const char *s, const char c)
-{
-	char	*iter;
-
-	iter = (char *)s;
-	while (*iter != '\0')
-	{
-		if (*((unsigned char *)iter) == (unsigned char)c)
-			return (iter);
-		++iter;
-	}
-	if ((unsigned char)c == '\0')
-		return (iter);
-	return (NULL);
+	line[line_len] = '\0';
+	ft_move_front(*buffer, *len, i);
+	*len -= line_len;
+	return (line);
 }
